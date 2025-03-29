@@ -1,0 +1,13 @@
+{
+  "name": "Spark",
+  "type": "Electric",
+  "category": "Physical",
+  "power": 65,
+  "accuracy": 100,
+  "pp": 20,
+  "range_type": "Melee",
+  "effects": {
+    "paralysis_chance": 30
+  },
+  "description": "The user throws an electrically charged tackle at the target. This may also leave the target with paralysis."
+}

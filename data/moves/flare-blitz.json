@@ -1,0 +1,14 @@
+{
+  "name": "Flare Blitz",
+  "type": "Fire",
+  "category": "Physical",
+  "power": 120,
+  "accuracy": 100,
+  "pp": 15,
+  "range_type": "Melee",
+  "effects": {
+    "burn_chance": 10,
+    "recoil_damage": 33
+  },
+  "description": "The user cloaks itself in fire and charges the target. This also damages the user quite a lot. This may leave the target with a burn."
+}

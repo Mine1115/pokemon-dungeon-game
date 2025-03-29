@@ -1,0 +1,11 @@
+{
+  "name": "Vine Whip",
+  "type": "Grass",
+  "category": "Physical",
+  "power": 45,
+  "accuracy": 100,
+  "pp": 25,
+  "range_type": "Ranged",
+  "effects": {},
+  "description": "The target is struck with slender, whiplike vines."
+}

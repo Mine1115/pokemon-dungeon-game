@@ -1,0 +1,11 @@
+{
+  "name": "Power Whip",
+  "type": "Grass",
+  "category": "Physical",
+  "power": 120,
+  "accuracy": 85,
+  "pp": 10,
+  "range_type": "Ranged",
+  "effects": {},
+  "description": "The user violently whirls its vines, tentacles, or the like to harshly lash the target."
+}

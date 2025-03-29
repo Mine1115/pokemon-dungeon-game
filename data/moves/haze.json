@@ -1,0 +1,13 @@
+{
+  "name": "Haze",
+  "type": "Ice",
+  "category": "Status",
+  "power": 0,
+  "accuracy": 100,
+  "pp": 30,
+  "range_type": "Ranged",
+  "effects": {
+    "clear_stat_changes": true
+  },
+  "description": "The user creates a haze that eliminates every stat change among all the Pokémon engaged in battle."
+}

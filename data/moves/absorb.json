@@ -1,0 +1,15 @@
+{
+  "name": "Absorb",
+  "type": "Grass",
+  "category": "Special",
+  "power": 20,
+  "accuracy": 100,
+  "pp": 25,
+  "range_type": "Ranged",
+  "effects": {
+    "on_hit": {
+      "heal_percent": 0.5
+    }
+  },
+  "description": "A nutrient-draining attack. The user's HP is restored by half the damage taken by the target."
+}

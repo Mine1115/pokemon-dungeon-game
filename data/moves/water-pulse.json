@@ -1,0 +1,13 @@
+{
+  "name": "Water Pulse",
+  "type": "Water",
+  "category": "Special",
+  "power": 60,
+  "accuracy": 100,
+  "pp": 20,
+  "range_type": "Ranged",
+  "effects": {
+    "confusion_chance": 20
+  },
+  "description": "The user attacks the target with a pulsing blast of water. This may also confuse the target."
+}

@@ -1,0 +1,13 @@
+{
+  "name": "Thunderbolt",
+  "type": "Electric",
+  "category": "Special",
+  "power": 90,
+  "accuracy": 100,
+  "pp": 15,
+  "range_type": "Ranged",
+  "effects": {
+    "paralysis_chance": 10
+  },
+  "description": "A strong electric attack that may paralyze the target."
+}

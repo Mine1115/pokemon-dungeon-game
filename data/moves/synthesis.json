@@ -1,0 +1,13 @@
+{
+  "name": "Synthesis",
+  "type": "Grass",
+  "category": "Status",
+  "power": 0,
+  "accuracy": 100,
+  "pp": 5,
+  "range_type": "Self",
+  "effects": {
+    "heal": 50
+  },
+  "description": "The user restores its own HP. The amount of HP regained varies with the weather."
+}

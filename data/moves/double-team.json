@@ -1,0 +1,13 @@
+{
+  "name": "Double Team",
+  "type": "Normal",
+  "category": "Status",
+  "power": 0,
+  "accuracy": 100,
+  "pp": 15,
+  "range_type": "Ranged",
+  "effects": {
+    "evasion_increase": 1
+  },
+  "description": "By moving rapidly, the user makes illusory copies of itself to raise its evasiveness."
+}

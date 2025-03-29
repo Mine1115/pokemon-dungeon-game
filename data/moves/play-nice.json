@@ -1,0 +1,13 @@
+{
+  "name": "Play Nice",
+  "type": "Normal",
+  "category": "Status",
+  "power": 0,
+  "accuracy": 100,
+  "pp": 20,
+  "range_type": "Ranged",
+  "effects": {
+    "attack_decrease": 1
+  },
+  "description": "The user and the target become friends, and the target loses its will to fight. This lowers the target's Attack stat."
+}

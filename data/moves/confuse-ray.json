@@ -1,0 +1,13 @@
+{
+  "name": "Confuse Ray",
+  "type": "Ghost",
+  "category": "Status",
+  "power": 0,
+  "accuracy": 100,
+  "pp": 10,
+  "range_type": "Ranged",
+  "effects": {
+    "confusion_chance": 100
+  },
+  "description": "The target is exposed to a sinister ray that causes confusion."
+}

@@ -1,0 +1,13 @@
+{
+  "name": "Thunder Shock",
+  "type": "Electric",
+  "category": "Special",
+  "power": 40,
+  "accuracy": 100,
+  "pp": 30,
+  "range_type": "Ranged",
+  "effects": {
+    "paralysis_chance": 10
+  },
+  "description": "A jolt of electricity is hurled at the target to inflict damage. This may also leave the target with paralysis."
+}

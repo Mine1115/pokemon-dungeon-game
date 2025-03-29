@@ -1,0 +1,35 @@
+{
+    "name": "Blastoise",
+    "types": ["Water"],
+    "base_stats": {
+        "HP": 79,
+        "Attack": 83,
+        "Defense": 100,
+        "Special Attack": 85,
+        "Special Defense": 105,
+        "Speed": 78
+    },
+    "experience_group": "Medium Slow",
+    "basexp": 239,
+    "abilities": [
+        {
+            "name": "Torrent",
+            "trigger": "on_low_health",
+            "effect": "boost_water_moves"
+        }
+    ],
+    "evolution": null,
+    "learnable_moves": {
+        "1": ["Tackle", "Tail Whip", "Water Gun", "Withdraw", "Flash Cannon"],
+        "9": ["Rapid Spin"],
+        "12": ["Bite"],
+        "15": ["Water Pulse"],
+        "20": ["Protect"],
+        "25": ["Rain Dance"],
+        "30": ["Aqua Tail"],
+        "35": ["Shell Smash"],
+        "42": ["Iron Defense"],
+        "49": ["Hydro Pump"],
+        "56": ["Wave Crash"]
+    }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "Poison Powder",
+  "type": "Poison",
+  "category": "Status",
+  "power": 0,
+  "accuracy": 75,
+  "pp": 35,
+  "range_type": "Ranged",
+  "effects": {
+    "poison_chance": 100
+  },
+  "description": "The user scatters a cloud of poisonous dust that poisons the target."
+}

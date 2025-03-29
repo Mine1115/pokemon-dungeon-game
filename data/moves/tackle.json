@@ -1,0 +1,11 @@
+{
+  "name": "Tackle",
+  "type": "Normal",
+  "category": "Physical",
+  "power": 40,
+  "accuracy": 100,
+  "pp": 35,
+  "range_type": "Melee",
+  "effects": {},
+  "description": "A physical attack in which the user charges and slams into the target with its whole body."
+}

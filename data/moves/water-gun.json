@@ -1,0 +1,11 @@
+{
+  "name": "Water Gun",
+  "type": "Water",
+  "category": "Special",
+  "power": 40,
+  "accuracy": 100,
+  "pp": 25,
+  "range_type": "Ranged",
+  "effects": {},
+  "description": "The target is blasted with a forceful shot of water."
+}

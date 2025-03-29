@@ -1,0 +1,37 @@
+{
+    "name": "Wartortle",
+    "types": ["Water"],
+    "base_stats": {
+        "HP": 59,
+        "Attack": 63,
+        "Defense": 80,
+        "Special Attack": 65,
+        "Special Defense": 80,
+        "Speed": 58
+    },
+    "experience_group": "Medium Slow",
+    "basexp": 142,
+    "abilities": [
+        {
+            "name": "Torrent",
+            "trigger": "on_low_health",
+            "effect": "boost_water_moves"
+        }
+    ],
+    "evolution": {
+        "level": 36,
+        "to": "Blastoise"
+    },
+    "learnable_moves": {
+        "1": ["Tackle", "Tail Whip", "Water Gun", "Withdraw"],
+        "9": ["Rapid Spin"],
+        "12": ["Bite"],
+        "15": ["Water Pulse"],
+        "20": ["Protect"],
+        "25": ["Rain Dance"],
+        "30": ["Aqua Tail"],
+        "35": ["Shell Smash"],
+        "40": ["Iron Defense"],
+        "45": ["Hydro Pump"]
+    }
+}

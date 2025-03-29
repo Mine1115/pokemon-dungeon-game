@@ -1,0 +1,13 @@
+{
+  "name": "Take Down",
+  "type": "Normal",
+  "category": "Physical",
+  "power": 90,
+  "accuracy": 85,
+  "pp": 20,
+  "range_type": "Melee",
+  "effects": {
+    "recoil_damage": 25
+  },
+  "description": "A reckless, full-body charge attack that also damages the user a little."
+}

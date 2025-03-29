@@ -1,0 +1,13 @@
+{
+  "name": "Nasty Plot",
+  "type": "Dark",
+  "category": "Status",
+  "power": 0,
+  "accuracy": 100,
+  "pp": 20,
+  "range_type": "Ranged",
+  "effects": {
+    "special_attack_increase": 2
+  },
+  "description": "The user stimulates its brain by thinking bad thoughts. This sharply raises the user's Sp. Atk stat."
+}

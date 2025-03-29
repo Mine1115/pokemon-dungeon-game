@@ -1,0 +1,11 @@
+{
+  "name": "Static",
+  "description": "When a Pokémon with Static is hit by a move that makes physical contact, there is a 30% chance that the attacking Pokémon will become paralyzed.",
+  "trigger": "on_hit",
+  "effect": {
+    "type": "status_condition",
+    "condition": "paralysis",
+    "chance": 30,
+    "requires_contact": true
+  }
+}

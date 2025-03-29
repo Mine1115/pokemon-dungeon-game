@@ -1,0 +1,13 @@
+{
+  "name": "Wave Crash",
+  "type": "Water",
+  "category": "Physical",
+  "power": 120,
+  "accuracy": 100,
+  "pp": 10,
+  "range_type": "Melee",
+  "effects": {
+    "recoil_damage": 33
+  },
+  "description": "The user shrouds itself in water and smashes into the target. This also damages the user quite a lot."
+}

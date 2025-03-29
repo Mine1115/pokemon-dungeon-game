@@ -1,0 +1,13 @@
+{
+  "name": "Sweet Kiss",
+  "type": "Fairy",
+  "category": "Status",
+  "power": 0,
+  "accuracy": 75,
+  "pp": 10,
+  "range_type": "Ranged",
+  "effects": {
+    "confusion_chance": 100
+  },
+  "description": "The user kisses the target with a sweet, angelic cuteness that causes confusion."
+}

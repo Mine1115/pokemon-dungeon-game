@@ -1,0 +1,16 @@
+{
+  "name": "Growth",
+  "type": "Normal",
+  "category": "Status",
+  "power": 0,
+  "accuracy": 100,
+  "pp": 20,
+  "range_type": "Self",
+  "effects": {
+    "stat_changes": {
+      "Attack": 1,
+      "Special Attack": 1
+    }
+  },
+  "description": "The user's body grows, raising the Attack and Sp. Atk stats."
+}

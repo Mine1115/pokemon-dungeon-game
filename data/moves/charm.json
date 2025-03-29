@@ -1,0 +1,13 @@
+{
+  "name": "Charm",
+  "type": "Fairy",
+  "category": "Status",
+  "power": 0,
+  "accuracy": 100,
+  "pp": 20,
+  "range_type": "Ranged",
+  "effects": {
+    "attack_decrease": 2
+  },
+  "description": "The user gazes at the target rather charmingly, making it less wary. This harshly lowers the target's Attack stat."
+}

@@ -1,0 +1,13 @@
+{
+  "name": "Withdraw",
+  "type": "Water",
+  "category": "Status",
+  "power": 0,
+  "accuracy": 0,
+  "pp": 40,
+  "range_type": "Self",
+  "effects": {
+    "defense_boost": 1
+  },
+  "description": "The user withdraws its body into its hard shell, raising its Defense stat."
+}

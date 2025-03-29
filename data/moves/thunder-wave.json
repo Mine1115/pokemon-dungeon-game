@@ -1,0 +1,13 @@
+{
+  "name": "Thunder Wave",
+  "type": "Electric",
+  "category": "Status",
+  "power": 0,
+  "accuracy": 90,
+  "pp": 20,
+  "range_type": "Ranged",
+  "effects": {
+    "paralysis_chance": 100
+  },
+  "description": "The user launches a weak jolt of electricity that paralyzes the target."
+}

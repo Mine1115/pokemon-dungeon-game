@@ -1,0 +1,13 @@
+{
+  "name": "Supersonic",
+  "type": "Normal",
+  "category": "Status",
+  "power": 0,
+  "accuracy": 55,
+  "pp": 20,
+  "range_type": "Ranged",
+  "effects": {
+    "confusion_chance": 100
+  },
+  "description": "The user generates odd sound waves from its body that confuse the target."
+}

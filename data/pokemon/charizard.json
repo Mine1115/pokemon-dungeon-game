@@ -1,0 +1,33 @@
+{
+    "name": "Charizard",
+    "types": ["Fire", "Flying"],
+    "base_stats": {
+        "HP": 78,
+        "Attack": 84,
+        "Defense": 78,
+        "Special Attack": 109,
+        "Special Defense": 85,
+        "Speed": 100
+    },
+    "experience_group": "Medium Slow",
+    "basexp": 240,
+    "abilities": [
+        {
+            "name": "Blaze",
+            "trigger": "on_low_health",
+            "effect": "boost_fire_moves"
+        }
+    ],
+    "evolution": null,
+    "learnable_moves": {
+        "1": ["Scratch", "Growl", "Ember", "Smokescreen", "Air Slash", "Heat Wave", "Dragon Claw"],
+        "12": ["Dragon Breath"],
+        "19": ["Fire Fang"],
+        "24": ["Slash"],
+        "30": ["Flamethrower"],
+        "39": ["Scary Face"],
+        "46": ["Fire Spin"],
+        "54": ["Inferno"],
+        "62": ["Flare Blitz"]
+    }
+}

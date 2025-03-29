@@ -1,0 +1,13 @@
+{
+  "name": "Bite",
+  "type": "Dark",
+  "category": "Physical",
+  "power": 60,
+  "accuracy": 100,
+  "pp": 25,
+  "range_type": "Melee",
+  "effects": {
+    "flinch_chance": 30
+  },
+  "description": "The target is bitten with viciously sharp fangs. This may also make the target flinch."
+}

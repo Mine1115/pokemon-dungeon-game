@@ -1,0 +1,14 @@
+{
+  "name": "Thunder",
+  "type": "Electric",
+  "category": "Special",
+  "power": 110,
+  "accuracy": 70,
+  "pp": 10,
+  "range_type": "Ranged",
+  "effects": {
+    "paralysis_chance": 30,
+    "perfect_accuracy_in_rain": true
+  },
+  "description": "A wicked thunderbolt is dropped on the target to inflict damage. This may also leave the target with paralysis."
+}

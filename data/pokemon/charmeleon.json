@@ -1,0 +1,36 @@
+{
+    "name": "Charmeleon",
+    "types": ["Fire"],
+    "base_stats": {
+        "HP": 58,
+        "Attack": 64,
+        "Defense": 58,
+        "Special Attack": 80,
+        "Special Defense": 65,
+        "Speed": 80
+    },
+    "experience_group": "Medium Slow",
+    "basexp": 142,
+    "abilities": [
+        {
+            "name": "Blaze",
+            "trigger": "on_low_health",
+            "effect": "boost_fire_moves"
+        }
+    ],
+    "evolution": {
+        "level": 36,
+        "to": "Charizard"
+    },
+    "learnable_moves": {
+        "1": ["Scratch", "Growl", "Ember", "Smokescreen"],
+        "12": ["Dragon Breath"],
+        "19": ["Fire Fang"],
+        "24": ["Slash"],
+        "30": ["Flamethrower"],
+        "37": ["Scary Face"],
+        "42": ["Fire Spin"],
+        "48": ["Inferno"],
+        "54": ["Flare Blitz"]
+    }
+}

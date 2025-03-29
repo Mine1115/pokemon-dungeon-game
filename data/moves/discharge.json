@@ -1,0 +1,13 @@
+{
+  "name": "Discharge",
+  "type": "Electric",
+  "category": "Special",
+  "power": 80,
+  "accuracy": 100,
+  "pp": 15,
+  "range_type": "Ranged",
+  "effects": {
+    "paralysis_chance": 30
+  },
+  "description": "The user releases a flare of electricity that may paralyze opposing Pokémon."
+}

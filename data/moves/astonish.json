@@ -1,0 +1,13 @@
+{
+  "name": "Astonish",
+  "type": "Ghost",
+  "category": "Physical",
+  "power": 30,
+  "accuracy": 100,
+  "pp": 15,
+  "range_type": "Melee",
+  "effects": {
+    "flinch_chance": 30
+  },
+  "description": "The user attacks the target while shouting in a startling fashion. This may also make the target flinch."
+}

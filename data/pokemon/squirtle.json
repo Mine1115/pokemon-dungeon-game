@@ -1,0 +1,39 @@
+{
+    "name": "Squirtle",
+    "types": ["Water"],
+    "base_stats": {
+        "HP": 44,
+        "Attack": 48,
+        "Defense": 65,
+        "Special Attack": 50,
+        "Special Defense": 64,
+        "Speed": 43
+    },
+    "experience_group": "Medium Slow",
+    "basexp": 63,
+    "abilities": [
+        {
+            "name": "Torrent",
+            "trigger": "on_low_health",
+            "effect": "boost_water_moves"
+        }
+    ],
+    "evolution": {
+        "level": 16,
+        "to": "Wartortle"
+    },
+    "learnable_moves": {
+        "1": ["Tackle", "Tail Whip"],
+        "3": ["Water Gun"],
+        "6": ["Withdraw"],
+        "9": ["Rapid Spin"],
+        "12": ["Bite"],
+        "15": ["Water Pulse"],
+        "18": ["Protect"],
+        "21": ["Rain Dance"],
+        "24": ["Aqua Tail"],
+        "27": ["Shell Smash"],
+        "30": ["Iron Defense"],
+        "33": ["Hydro Pump"]
+    }
+}

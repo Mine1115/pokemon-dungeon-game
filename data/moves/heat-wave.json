@@ -1,0 +1,13 @@
+{
+  "name": "Heat Wave",
+  "type": "Fire",
+  "category": "Special",
+  "power": 95,
+  "accuracy": 90,
+  "pp": 10,
+  "range_type": "Ranged",
+  "effects": {
+    "burn_chance": 10
+  },
+  "description": "The user attacks by exhaling hot breath on the opposing Pokémon. This may also leave them with a burn."
+}

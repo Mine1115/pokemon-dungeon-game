@@ -1,0 +1,13 @@
+{
+  "name": "Mean Look",
+  "type": "Normal",
+  "category": "Status",
+  "power": 0,
+  "accuracy": 100,
+  "pp": 5,
+  "range_type": "Ranged",
+  "effects": {
+    "trap": true
+  },
+  "description": "The user pins the target with a dark, arresting look. The target becomes unable to flee."
+}

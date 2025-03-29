@@ -1,0 +1,40 @@
+{
+    "name": "Bulbasaur",
+    "types": ["Grass", "Poison"],
+    "base_stats": {
+        "HP": 45,
+        "Attack": 49,
+        "Defense": 49,
+        "Special Attack": 65,
+        "Special Defense": 65,
+        "Speed": 45
+    },
+    "experience_group": "Medium Slow",
+    "basexp": 64,
+    "abilities": [
+        {
+            "name": "Overgrow",
+            "trigger": "on_low_health",
+            "effect": "boost_grass_moves"
+        }
+    ],
+    "evolution": {
+        "level": 16,
+        "to": "Ivysaur"
+    },
+    "learnable_moves": {
+        "1": ["Tackle", "Growl"],
+        "3": ["Vine Whip"],
+        "6": ["Growth"],
+        "9": ["Leech Seed"],
+        "12": ["Razor Leaf"],
+        "15": ["Poison Powder", "Sleep Powder"],
+        "18": ["Seed Bomb"],
+        "21": ["Take Down"],
+        "24": ["Sweet Scent"],
+        "27": ["Synthesis"],
+        "30": ["Worry Seed"],
+        "33": ["Power Whip"],
+        "36": ["Solar Beam"]
+    }
+}

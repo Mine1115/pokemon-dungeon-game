@@ -1,0 +1,14 @@
+{
+  "name": "Rapid Spin",
+  "type": "Normal",
+  "category": "Physical",
+  "power": 50,
+  "accuracy": 100,
+  "pp": 40,
+  "range_type": "Melee",
+  "effects": {
+    "remove_field_effects": true,
+    "speed_boost": 1
+  },
+  "description": "A spin attack that can also eliminate such moves as Bind, Wrap, Leech Seed, and Spikes. This also raises the user's Speed stat."
+}

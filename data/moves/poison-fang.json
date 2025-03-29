@@ -1,0 +1,14 @@
+{
+  "name": "Poison Fang",
+  "type": "Poison",
+  "category": "Physical",
+  "power": 50,
+  "accuracy": 100,
+  "pp": 15,
+  "range_type": "Melee",
+  "effects": {
+    "poison_chance": 50,
+    "bad_poison_chance": 50
+  },
+  "description": "The user bites the target with toxic fangs. This may also leave the target badly poisoned."
+}

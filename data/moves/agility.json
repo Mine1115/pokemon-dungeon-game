@@ -1,0 +1,13 @@
+{
+  "name": "Agility",
+  "type": "Psychic",
+  "category": "Status",
+  "power": 0,
+  "accuracy": 100,
+  "pp": 30,
+  "range_type": "Ranged",
+  "effects": {
+    "speed_increase": 2
+  },
+  "description": "The user relaxes and lightens its body to move faster. This sharply raises the Speed stat."
+}

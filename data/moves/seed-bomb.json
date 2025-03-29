@@ -1,0 +1,11 @@
+{
+  "name": "Seed Bomb",
+  "type": "Grass",
+  "category": "Physical",
+  "power": 80,
+  "accuracy": 100,
+  "pp": 15,
+  "range_type": "Ranged",
+  "effects": {},
+  "description": "The user slams a barrage of hard-shelled seeds down on the target from above."
+}

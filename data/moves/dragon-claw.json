@@ -1,0 +1,11 @@
+{
+  "name": "Dragon Claw",
+  "type": "Dragon",
+  "category": "Physical",
+  "power": 80,
+  "accuracy": 100,
+  "pp": 15,
+  "range_type": "Melee",
+  "effects": {},
+  "description": "The user slashes the target with huge, sharp claws."
+}

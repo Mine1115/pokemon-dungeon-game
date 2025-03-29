@@ -1,0 +1,11 @@
+{
+  "name": "Scratch",
+  "type": "Normal",
+  "category": "Physical",
+  "power": 40,
+  "accuracy": 100,
+  "pp": 35,
+  "range_type": "Melee",
+  "effects": {},
+  "description": "Hard, pointed, sharp claws rake the target to inflict damage."
+}

@@ -1,0 +1,14 @@
+{
+  "name": "Protect",
+  "type": "Normal",
+  "category": "Status",
+  "power": 0,
+  "accuracy": 0,
+  "pp": 10,
+  "range_type": "Self",
+  "effects": {
+    "protect": true,
+    "priority": 4
+  },
+  "description": "This move enables the user to protect itself from all attacks. Its chance of failing rises if it is used in succession."
+}

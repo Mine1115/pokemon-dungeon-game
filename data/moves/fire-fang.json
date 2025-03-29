@@ -1,0 +1,14 @@
+{
+  "name": "Fire Fang",
+  "type": "Fire",
+  "category": "Physical",
+  "power": 65,
+  "accuracy": 95,
+  "pp": 15,
+  "range_type": "Melee",
+  "effects": {
+    "burn_chance": 10,
+    "flinch_chance": 10
+  },
+  "description": "The user bites with flame-cloaked fangs. This may also make the target flinch or leave it with a burn."
+}

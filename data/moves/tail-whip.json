@@ -1,0 +1,13 @@
+{
+  "name": "Tail Whip",
+  "type": "Normal",
+  "category": "Status",
+  "power": 0,
+  "accuracy": 100,
+  "pp": 30,
+  "range_type": "Ranged",
+  "effects": {
+    "defense_decrease": 1
+  },
+  "description": "The user wags its tail cutely, making opposing Pokémon less wary and lowering their Defense stat."
+}

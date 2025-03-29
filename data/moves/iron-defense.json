@@ -1,0 +1,13 @@
+{
+  "name": "Iron Defense",
+  "type": "Steel",
+  "category": "Status",
+  "power": 0,
+  "accuracy": 0,
+  "pp": 15,
+  "range_type": "Self",
+  "effects": {
+    "defense_boost": 2
+  },
+  "description": "The user hardens its body's surface like iron, sharply raising its Defense stat."
+}

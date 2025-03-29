@@ -1,0 +1,38 @@
+{
+    "name": "Charmander",
+    "types": ["Fire"],
+    "base_stats": {
+        "HP": 39,
+        "Attack": 52,
+        "Defense": 43,
+        "Special Attack": 60,
+        "Special Defense": 50,
+        "Speed": 65
+    },
+    "experience_group": "Medium Slow",
+    "basexp": 62,
+    "abilities": [
+        {
+            "name": "Blaze",
+            "trigger": "on_low_health",
+            "effect": "boost_fire_moves"
+        }
+    ],
+    "evolution": {
+        "level": 16,
+        "to": "Charmeleon"
+    },
+    "learnable_moves": {
+        "1": ["Scratch", "Growl"],
+        "4": ["Ember"],
+        "8": ["Smokescreen"],
+        "12": ["Dragon Breath"],
+        "17": ["Fire Fang"],
+        "20": ["Slash"],
+        "24": ["Flamethrower"],
+        "28": ["Scary Face"],
+        "32": ["Fire Spin"],
+        "36": ["Inferno"],
+        "40": ["Flare Blitz"]
+    }
+}

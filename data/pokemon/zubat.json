@@ -1,0 +1,38 @@
+{
+    "name": "Zubat",
+    "types": ["Posion", "Flying"],
+    "base_stats": {
+        "HP": 40,
+        "Attack": 45,
+        "Defense": 35,
+        "Special Attack": 30,
+        "Special Defense": 40,
+        "Speed": 55
+    },
+    "experience_group": "Medium Fast",
+    "basexp": 49,
+    "abilities": [
+        {
+            "name": "Inner Focus",
+            "trigger": "on_hit",
+            "effect": "provent flinching"
+        }
+    ],
+    "evolution": {
+        "level": 22,
+        "to": "Gikbat"
+    },
+    "learnable_moves": {
+        "1":  ["Absorb", "Supersonic"],
+        "5":  ["Astonish"],
+        "10": ["Mean Look"],
+        "15": ["Poison Fang"],
+        "25": ["Air Cutter"],
+        "30": ["Bite"],
+        "35": ["Haze"],
+        "40": ["Venoshock"],
+        "45": ["Confuse Ray"],
+        "50": ["Air Slash"],
+        "55": ["Leech Life"]
+    }
+}

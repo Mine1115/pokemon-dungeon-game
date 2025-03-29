@@ -1,0 +1,15 @@
+{
+  "name": "Sweet Scent",
+  "type": "Normal",
+  "category": "Status",
+  "power": 0,
+  "accuracy": 100,
+  "pp": 20,
+  "range_type": "Ranged",
+  "effects": {
+    "stat_changes": {
+      "Evasion": -1
+    }
+  },
+  "description": "A sweet scent that lowers the opposing Pokémon's evasiveness."
+}

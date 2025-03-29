@@ -1,0 +1,13 @@
+{
+  "name": "Smokescreen",
+  "type": "Normal",
+  "category": "Status",
+  "power": 0,
+  "accuracy": 100,
+  "pp": 20,
+  "range_type": "Ranged",
+  "effects": {
+    "accuracy_reduction": -1
+  },
+  "description": "The user releases an obscuring cloud of smoke or ink. This lowers the target's accuracy."
+}

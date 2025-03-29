@@ -1,0 +1,13 @@
+{
+  "name": "Nuzzle",
+  "type": "Electric",
+  "category": "Physical",
+  "power": 20,
+  "accuracy": 100,
+  "pp": 20,
+  "range_type": "Melee",
+  "effects": {
+    "paralysis_chance": 100
+  },
+  "description": "The user nuzzles its electrified cheeks against the target. This also leaves the target with paralysis."
+}

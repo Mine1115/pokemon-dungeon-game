@@ -1,0 +1,13 @@
+{
+  "name": "Air Cutter",
+  "type": "Flying",
+  "category": "Special",
+  "power": 60,
+  "accuracy": 95,
+  "pp": 25,
+  "range_type": "Ranged",
+  "effects": {
+    "critical_hit_ratio": 1
+  },
+  "description": "The user launches razor-like wind to slash the target. This attack has a higher chance for a critical hit."
+}

@@ -1,0 +1,13 @@
+{
+  "name": "Feint",
+  "type": "Normal",
+  "category": "Physical",
+  "power": 30,
+  "accuracy": 100,
+  "pp": 10,
+  "range_type": "Melee",
+  "effects": {
+    "bypass_protect": true
+  },
+  "description": "An attack that hits a target using Protect or Detect. This also lifts the effects of those moves."
+}

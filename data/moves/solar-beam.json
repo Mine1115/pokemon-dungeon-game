@@ -1,0 +1,13 @@
+{
+  "name": "Solar Beam",
+  "type": "Grass",
+  "category": "Special",
+  "power": 120,
+  "accuracy": 100,
+  "pp": 10,
+  "range_type": "Ranged",
+  "effects": {
+    "charge_turn": 1
+  },
+  "description": "A two-turn attack. The user gathers light, then blasts a bundled beam on the next turn."
+}

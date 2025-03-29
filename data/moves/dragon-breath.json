@@ -1,0 +1,13 @@
+{
+  "name": "Dragon Breath",
+  "type": "Dragon",
+  "category": "Special",
+  "power": 60,
+  "accuracy": 100,
+  "pp": 20,
+  "range_type": "Ranged",
+  "effects": {
+    "paralysis_chance": 30
+  },
+  "description": "The user exhales a mighty gust that inflicts damage. This may also leave the target with paralysis."
+}

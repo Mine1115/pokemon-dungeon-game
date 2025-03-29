@@ -1,0 +1,35 @@
+{
+    "name": "Venusaur",
+    "types": ["Grass", "Poison"],
+    "base_stats": {
+        "HP": 80,
+        "Attack": 82,
+        "Defense": 83,
+        "Special Attack": 100,
+        "Special Defense": 100,
+        "Speed": 80
+    },
+    "experience_group": "Medium Slow",
+    "basexp": 236,
+    "abilities": [
+        {
+            "name": "Overgrow",
+            "trigger": "on_low_health",
+            "effect": "boost_grass_moves"
+        }
+    ],
+    "evolution": null,
+    "learnable_moves": {
+        "1": ["Tackle", "Growl", "Vine Whip", "Growth", "Petal Dance", "Petal Blizzard"],
+        "9": ["Leech Seed"],
+        "12": ["Razor Leaf"],
+        "15": ["Poison Powder", "Sleep Powder"],
+        "20": ["Seed Bomb"],
+        "25": ["Take Down"],
+        "30": ["Sweet Scent"],
+        "37": ["Synthesis"],
+        "44": ["Worry Seed"],
+        "51": ["Power Whip"],
+        "58": ["Solar Beam"]
+    }
+}

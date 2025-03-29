@@ -1,0 +1,14 @@
+{
+  "name": "Quick Guard",
+  "type": "Fighting",
+  "category": "Status",
+  "power": 0,
+  "accuracy": 100,
+  "pp": 15,
+  "range_type": "Ranged",
+  "effects": {
+    "protect_from_priority_moves": true,
+    "priority": 3
+  },
+  "description": "The user protects itself and its allies from priority moves. If used in succession, its chance of failing rises."
+}

@@ -1,0 +1,39 @@
+{
+    "name": "Pikachu",
+    "types": ["Electric"],
+    "base_stats": {
+        "HP": 35,
+        "Attack": 55,
+        "Defense": 40,
+        "Special Attack": 50,
+        "Special Defense": 50,
+        "Speed": 90
+    },
+    "experience_group": "Medium Fast",
+    "basexp": 112,
+    "abilities": [
+        {
+            "name": "Static",
+            "trigger": "on_hit",
+            "effect": "paralyze_attacker"
+        }
+    ],
+    "evolution": {
+        "level": 16,
+        "to": "Raichu"
+    },
+    "learnable_moves": {
+        "1": ["Growl", "Thunder Shock", "Charm", "Nasty Plot", "Nuzzle", "Quick Attack", "Sweet Kiss", "Tail Whip", "Growl", "Play Nice"],
+        "4": ["Thunder Wave"],
+        "8": ["Double Team"],
+        "12": ["Electro Ball"],
+        "16": ["Feint"],
+        "20": ["Spark"],
+        "24": ["Agility"],
+        "28": ["Iron Tail"],
+        "32": ["Discharge"],
+        "36": ["Thunderbolt"],
+        "40": ["Light Screen"],
+        "44": ["Thunder"]
+    }
+}

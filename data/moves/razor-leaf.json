@@ -1,0 +1,13 @@
+{
+  "name": "Razor Leaf",
+  "type": "Grass",
+  "category": "Physical",
+  "power": 55,
+  "accuracy": 95,
+  "pp": 25,
+  "range_type": "Ranged",
+  "effects": {
+    "critical_hit_ratio": 2
+  },
+  "description": "Sharp-edged leaves are launched to slash at opposing Pokémon. Critical hits land more easily."
+}

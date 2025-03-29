@@ -1,0 +1,17 @@
+{
+  "name": "Shell Smash",
+  "type": "Normal",
+  "category": "Status",
+  "power": 0,
+  "accuracy": 0,
+  "pp": 15,
+  "range_type": "Self",
+  "effects": {
+    "attack_boost": 2,
+    "special_attack_boost": 2,
+    "speed_boost": 2,
+    "defense_reduction": -1,
+    "special_defense_reduction": -1
+  },
+  "description": "The user breaks its shell, lowering its Defense and Sp. Def stats but sharply raising its Attack, Sp. Atk, and Speed stats."
+}

@@ -1,0 +1,13 @@
+{
+  "name": "Sleep Powder",
+  "type": "Grass",
+  "category": "Status",
+  "power": 0,
+  "accuracy": 75,
+  "pp": 15,
+  "range_type": "Ranged",
+  "effects": {
+    "sleep_chance": 100
+  },
+  "description": "The user scatters a big cloud of sleep-inducing dust around the target."
+}

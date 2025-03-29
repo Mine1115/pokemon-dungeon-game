@@ -1,0 +1,50 @@
+can you make the data files for the following pokemon and moves useing the links I provide
+* pokemon
+- Bulbasaur: https://pokemondb.net/pokedex/bulbasaur
+- Ivysaur: https://pokemondb.net/pokedex/ivysaur
+- Venusaur: https://pokemondb.net/pokedex/venusaur
+- Charmander: https://pokemondb.net/pokedex/charmander
+- Charmeleon: https://pokemondb.net/pokedex/charmeleon
+- Charizard: https://pokemondb.net/pokedex/charizard
+- Squirtle: https://pokemondb.net/pokedex/squirtle
+- Wartortle: https://pokemondb.net/pokedex/wartortle
+- Blastoise: https://pokemondb.net/pokedex/blastoise
+* moves
+- Vine Whip: https://pokemondb.net/move/vine-whip
+- growth: https://pokemondb.net/move/growth
+- Razor leaf: https://pokemondb.net/move/razor-leaf
+- Poison Powder: https://pokemondb.net/move/poison-powder
+- Sleep Powder: https://pokemondb.net/move/sleep-powder
+- Seed Bomb: https://pokemondb.net/move/seed-bomb
+- Take Down: https://pokemondb.net/move/take-down
+- Sweet Scent: https://pokemondb.net/move/sweet-scent
+- Synthesis: https://pokemondb.net/move/synthesis
+- Worry Seed: https://pokemondb.net/move/worry-seed
+- Power Whip: https://pokemondb.net/move/power-whip
+- Solar Beam: https://pokemondb.net/move/solar-beam
+- Scratch: https://pokemondb.net/move/scratch
+- Ember: https://pokemondb.net/move/ember
+- Smokescreen: https://pokemondb.net/move/smokescreen
+- Dragon Breath: https://pokemondb.net/move/dragon-breath
+- Fire Fang: https://pokemondb.net/move/fire-fang
+- Slash: https://pokemondb.net/move/slash
+- Flamethrower: https://pokemondb.net/move/flamethrower
+- Scary Face: https://pokemondb.net/move/scary-face
+- Fire Spin: https://pokemondb.net/move/fire-spin
+- Inferno: https://pokemondb.net/move/inferno
+- Flare Blitz: https://pokemondb.net/move/flare-blitz
+- Fire Spin: https://pokemondb.net/move/fire-spin
+- Heat Wave: https://pokemondb.net/move/heat-wave
+- Dragon Claw: https://pokemondb.net/move/dragon-claw
+- Water Gun: https://pokemondb.net/move/water-gun
+- Withdraw: https://pokemondb.net/move/withdraw
+- Rapid Spin: https://pokemondb.net/move/rapid-spin
+- Bite: https://pokemondb.net/move/bite
+- Water Pulse: https://pokemondb.net/move/water-pulse
+- Protect: https://pokemondb.net/move/protect
+- Rain Dance: https://pokemondb.net/move/rain-dance
+- Aqua Tail: https://pokemondb.net/move/aqua-tail
+- Shell Smash: https://pokemondb.net/move/shell-smash
+- Iron Defense: https://pokemondb.net/move/iron-defense
+- Hydro Pump: https://pokemondb.net/move/hydro-pump
+- Wave Crash: https://pokemondb.net/move/wave-crash
