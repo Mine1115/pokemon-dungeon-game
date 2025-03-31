@@ -2,102 +2,219 @@ import pygame
 import random
 import numpy as np
 import math
+from dataclasses import dataclass
 from game.pokemon import Pokemon
 from game.move_examples import tackle
 from game.combat import calculate_damage
 from utils.animation import SpriteAnimation
 
+@dataclass
+class Room:
+    x: int
+    y: int
+    width: int
+    height: int
+
 class Dungeon:
-    def __init__(self, width, height, tile_size, floor=1):
-        self.width = width
-        self.height = height
-        self.tile_size = tile_size
-        self.floor = floor  # Track the current floor
-        self.tiles, self.rooms = self.generate_dungeon()  # Generate tiles and store rooms
-        self.explored = [[False for _ in range(self.width // self.tile_size)] for _ in range(self.height // self.tile_size)]  # Track explored tiles
-        self.ladder_position = self.place_ladder()  # Place the ladder in a random room
-        self.enemy_projectiles = []  # List of projectiles fired by wild Pokémon
+    def __init__(self, width, height, tile_size, floor=1, dungeon_state=None):
+        if dungeon_state:
+            # Initialize from server state
+            self.width = dungeon_state["width"]
+            self.height = dungeon_state["height"]
+            self.tile_size = dungeon_state["tile_size"]
+            self.floor = dungeon_state["floor"]
+            self.tiles = dungeon_state["tiles"]
+            self.rooms = [Room(r.x, r.y, r.width, r.height) for r in dungeon_state.get("rooms", [])]
+            self.ladder_position = dungeon_state["ladder_position"]
+            self.enemy_projectiles = []
+            self.wild_pokemon = []
+            self.explored = dungeon_state.get("explored", [])
+            self.is_multiplayer = True
+        else:
+            # Local generation for single player
+            self.width = width
+            self.height = height
+            self.tile_size = tile_size
+            self.floor = floor
+            self.tiles, self.rooms = self._generate_dungeon()
+            self.ladder_position = self._place_ladder()
+            self.enemy_projectiles = []
+            self.wild_pokemon = []
+            # Initialize all tiles as explored for single player to fix visibility issue
+            self.explored = [[True for _ in range(width // tile_size)] for _ in range(height // tile_size)]
+            self.is_multiplayer = False
+
+    def _generate_dungeon(self):
+        # Initialize tiles array with walls (1)
+        width_tiles = self.width // self.tile_size
+        height_tiles = self.height // self.tile_size
+        tiles = [[1 for _ in range(width_tiles)] for _ in range(height_tiles)]
         
-        self.wild_pokemon = self.spawn_wild_pokemon()  # Spawn wild Pokémon
-
-    def generate_dungeon(self):
-        # Initialize the dungeon grid with walls (1)
-        tiles = [[1 for _ in range(self.width // self.tile_size)] for _ in range(self.height // self.tile_size)]
-
-        # Generate random rooms with spacing
-        num_rooms = random.randint(8, 15)  # Number of rooms
+        # Store rooms for spawn point and ladder placement
+        self.rooms = []
+        
+        # Generate rooms with proper spacing
         rooms = []
+        num_rooms = random.randint(8, 15)  # Number of rooms to attempt to create
+        
         for _ in range(num_rooms):
-            for attempt in range(5):  # Try up to 5 times to place the room
-                room_width = random.randint(3, 8)  # Room width in tiles
-                room_height = random.randint(3, 8)  # Room height in tiles
-                room_x = random.randint(1, (self.width // self.tile_size) - room_width - 2)  # Leave 1-tile spacing
-                room_y = random.randint(1, (self.height // self.tile_size) - room_height - 2)  # Leave 1-tile spacing
-
+            for attempt in range(5):  # Try up to 5 times to place each room
+                room_width = random.randint(4, 8)
+                room_height = random.randint(4, 8)
+                # Leave 1-tile spacing around the edges
+                x = random.randint(1, width_tiles - room_width - 2)
+                y = random.randint(1, height_tiles - room_height - 2)
+                
                 # Check if the room overlaps with existing rooms or is too close (less than 1 tile apart)
                 overlaps = False
-                for other_room in rooms:
+                for room in rooms:
                     if (
-                        room_x - 1 < other_room[0] + other_room[2] and
-                        room_x + room_width + 1 > other_room[0] and
-                        room_y - 1 < other_room[1] + other_room[3] and
-                        room_y + room_height + 1 > other_room[1]
+                        x - 1 < room.x + room.width and
+                        x + room_width + 1 > room.x and
+                        y - 1 < room.y + room.height and
+                        y + room_height + 1 > room.y
                     ):
                         overlaps = True
                         break
-
+                
                 if not overlaps:
-                    # Room placement is valid, add it to the list
-                    rooms.append((room_x, room_y, room_width, room_height))
-
+                    # Room placement is valid, create it
+                    new_room = Room(x, y, room_width, room_height)
+                    rooms.append(new_room)
+                    
                     # Carve out the room in the grid
-                    for y in range(room_y, room_y + room_height):
-                        for x in range(room_x, room_x + room_width):
-                            tiles[y][x] = 0  # 0 represents a floor
-                    break  # Exit the retry loop if the room is successfully placed
-
-        # Connect the rooms with walkways
-        for i in range(len(rooms) - 1):
-            room_a = rooms[i]
-            room_b = rooms[i + 1]
-
-            # Get the center of each room
-            center_a = (room_a[0] + room_a[2] // 2, room_a[1] + room_a[3] // 2)
-            center_b = (room_b[0] + room_b[2] // 2, room_b[1] + room_b[3] // 2)
-
-            # Create a horizontal walkway
-            if center_a[0] < center_b[0]:
-                for x in range(center_a[0], center_b[0] + 1):
-                    tiles[center_a[1]][x] = 0
+                    for i in range(y, y + room_height):
+                        for j in range(x, x + room_width):
+                            tiles[i][j] = 0  # Floor
+                    break  # Exit the retry loop if room placed successfully
+        
+        # Connect rooms with corridors using a better path generation algorithm
+        for i in range(len(rooms)-1):
+            room1 = rooms[i]
+            room2 = rooms[i+1]
+            # Use center points of rooms
+            x1 = room1.x + room1.width // 2
+            y1 = room1.y + room1.height // 2
+            x2 = room2.x + room2.width // 2
+            y2 = room2.y + room2.height // 2
+            
+            # Randomly decide whether to go horizontal first or vertical first
+            if random.random() < 0.5:
+                # Horizontal corridor first, then vertical
+                for x in range(min(x1, x2), max(x1, x2) + 1):
+                    tiles[y1][x] = 0
+                
+                for y in range(min(y1, y2), max(y1, y2) + 1):
+                    tiles[y][x2] = 0
             else:
-                for x in range(center_b[0], center_a[0] + 1):
-                    tiles[center_a[1]][x] = 0
-
-            # Create a vertical walkway
-            if center_a[1] < center_b[1]:
-                for y in range(center_a[1], center_b[1] + 1):
-                    tiles[y][center_b[0]] = 0
-            else:
-                for y in range(center_b[1], center_a[1] + 1):
-                    tiles[y][center_b[0]] = 0
-
+                # Vertical corridor first, then horizontal
+                for y in range(min(y1, y2), max(y1, y2) + 1):
+                    tiles[y][x1] = 0
+                
+                for x in range(min(x1, x2), max(x1, x2) + 1):
+                    tiles[y2][x] = 0
+        
+        self.rooms = rooms
         return tiles, rooms
 
-    def place_ladder(self):
-        """
-        Place the ladder in a random room.
-        """
-        random_room = random.choice(self.rooms)
-        ladder_x = random.randint(random_room[0] + 1, random_room[0] + random_room[2] - 2) * self.tile_size
-        ladder_y = random.randint(random_room[1] + 1, random_room[1] + random_room[3] - 2) * self.tile_size
-        return ladder_x, ladder_y
+    def _place_ladder(self):
+        # For multiplayer, use a random valid position
+        if hasattr(self, 'is_multiplayer') and self.is_multiplayer:
+            # Find a random walkable tile
+            width_tiles = self.width // self.tile_size
+            height_tiles = self.height // self.tile_size
+            valid_positions = []
+            for y in range(height_tiles):
+                for x in range(width_tiles):
+                    if self.tiles[y][x] == 0:  # If it's a floor tile
+                        valid_positions.append((x, y))
+            if valid_positions:
+                x, y = random.choice(valid_positions)
+                return (x * self.tile_size, y * self.tile_size)
+        
+        # For single player, place in the last room (farthest from spawn)
+        if self.rooms and len(self.rooms) > 1:
+            # Skip the first room (player spawn) and use the last room
+            last_room = self.rooms[-1]
+            
+            # Try to place ladder in center of last room
+            center_x = last_room.x + last_room.width // 2
+            center_y = last_room.y + last_room.height // 2
+            
+            # Verify the center is walkable
+            if self.is_walkable(center_x * self.tile_size, center_y * self.tile_size):
+                return (center_x * self.tile_size, center_y * self.tile_size)
+            
+            # If center is not walkable, find a valid position in the room
+            for y in range(last_room.y, last_room.y + last_room.height):
+                for x in range(last_room.x, last_room.x + last_room.width):
+                    if self.tiles[y][x] == 0:  # If it's a floor tile
+                        return (x * self.tile_size, y * self.tile_size)
+        
+        # If no rooms or couldn't find valid position in last room, try any room except the first
+        if self.rooms and len(self.rooms) > 1:
+            for room in self.rooms[1:]:  # Skip the first room
+                for y in range(room.y, room.y + room.height):
+                    for x in range(room.x, room.x + room.width):
+                        if self.tiles[y][x] == 0:  # If it's a floor tile
+                            return (x * self.tile_size, y * self.tile_size)
+        
+        # Final fallback: find any walkable tile
+        width_tiles = self.width // self.tile_size
+        height_tiles = self.height // self.tile_size
+        valid_positions = []
+        for y in range(height_tiles):
+            for x in range(width_tiles):
+                if self.tiles[y][x] == 0:  # If it's a floor tile
+                    valid_positions.append((x, y))
+        
+        if valid_positions:
+            x, y = random.choice(valid_positions)
+            return (x * self.tile_size, y * self.tile_size)
+        
+        # Absolute last resort: random position
+        x = random.randint(0, width_tiles - 1)
+        y = random.randint(0, height_tiles - 1)
+        return (x * self.tile_size, y * self.tile_size)
 
-    def get_player_spawn(self):
-        # Choose the center of the first room as the spawn point
-        first_room = self.rooms[0]
-        spawn_x = (first_room[0] + first_room[2] // 2) * self.tile_size
-        spawn_y = (first_room[1] + first_room[3] // 2) * self.tile_size
-        return spawn_x, spawn_y
+    def update_from_server_state(self, dungeon_state):
+        """Update the dungeon state from server data"""
+        self.tiles = dungeon_state["tiles"]
+        self.ladder_position = dungeon_state["ladder_position"]
+        self.explored = dungeon_state.get("explored", [])
+        
+        # Update rooms data for minimap functionality
+        if "rooms" in dungeon_state:
+            self.rooms = [Room(r["x"], r["y"], r["width"], r["height"]) for r in dungeon_state["rooms"]]
+        
+        # Update wild Pokémon from server state
+        self.wild_pokemon = []
+        for pokemon_data in dungeon_state.get("wild_pokemon", []):
+            pokemon = Pokemon.from_json(pokemon_data["name"].lower())
+            pokemon.level = pokemon_data["level"]
+            pokemon.current_hp = pokemon_data["current_hp"]
+            pokemon.stats["HP"] = pokemon_data["max_hp"]
+            
+            self.wild_pokemon.append({
+                "pokemon": pokemon,
+                "position": pokemon_data["position"],
+                "animation_state": pokemon_data["animation_state"],
+                "animation": SpriteAnimation(pokemon.name, pokemon_data["animation_state"])
+            })
+
+    def is_tile_explored(self, grid_x, grid_y):
+        """Check if a tile has been explored by the player"""
+        if not self.explored:
+            return True  # If no exploration data, show everything
+        if 0 <= grid_y < len(self.explored) and 0 <= grid_x < len(self.explored[0]):
+            return self.explored[grid_y][grid_x]
+        return False
+        
+    def update_explored(self, player_position):
+        """Update the explored tiles around the player's position"""
+        # For single player, we've already set all tiles to explored in __init__
+        # This is just a placeholder method to satisfy the call in main.py
+        pass
 
     def is_walkable(self, x, y):
         # Convert x and y to integers to avoid TypeError
@@ -106,6 +223,100 @@ class Dungeon:
         if 0 <= grid_x < len(self.tiles[0]) and 0 <= grid_y < len(self.tiles):
             return self.tiles[grid_y][grid_x] == 0
         return False
+        
+    def get_spawn_point(self):
+        """Get a safe spawn point for the player"""
+        if self.is_multiplayer:
+            # In multiplayer, use the spawn point from server
+            return None
+            
+        # In single player, spawn in the first room
+        if self.rooms:
+            first_room = self.rooms[0]
+            # Try center of first room
+            center_x = (first_room.x + first_room.width // 2) * self.tile_size
+            center_y = (first_room.y + first_room.height // 2) * self.tile_size
+            
+            if self.is_walkable(center_x, center_y):
+                return center_x, center_y
+            
+            # If center is not walkable, try other positions in the room
+            for dy in range(-2, 3):
+                for dx in range(-2, 3):
+                    test_x = center_x + (dx * self.tile_size)
+                    test_y = center_y + (dy * self.tile_size)
+                    if self.is_walkable(test_x, test_y):
+                        return test_x, test_y
+            
+            # If no walkable spot found, search the entire first room systematically
+            for ry in range(first_room.y, first_room.y + first_room.height):
+                for rx in range(first_room.x, first_room.x + first_room.width):
+                    world_x = rx * self.tile_size
+                    world_y = ry * self.tile_size
+                    if self.is_walkable(world_x, world_y):
+                        return world_x, world_y
+                
+            # If still no walkable spot found, find nearest valid spawn using spiral search
+            return self.find_nearest_valid_spawn(center_x, center_y)
+                        
+        raise ValueError("No walkable spawn point found in dungeon")
+
+    def find_nearest_valid_spawn(self, x, y):
+        """Find the nearest valid (walkable) spawn point using a spiral search pattern."""
+        # Convert to tile coordinates
+        center_x = int(x // self.tile_size)
+        center_y = int(y // self.tile_size)
+        
+        # Spiral pattern: right, down, left, up
+        dx = [1, 0, -1, 0]
+        dy = [0, 1, 0, -1]
+        
+        # Start from the center and spiral outward
+        current_x = center_x
+        current_y = center_y
+        layer = 1
+        
+        # Check the center point first
+        world_x = center_x * self.tile_size
+        world_y = center_y * self.tile_size
+        if self.is_walkable(world_x, world_y):
+            return (world_x, world_y)
+        
+        # Spiral outward to find a valid spawn point
+        while layer < 50:  # Increased search radius to ensure finding a valid point
+            for direction in range(4):
+                steps = layer if direction % 2 == 0 else layer
+                
+                for _ in range(steps):
+                    current_x += dx[direction]
+                    current_y += dy[direction]
+                    
+                    # Check bounds
+                    if (0 <= current_x < len(self.tiles[0]) and 
+                        0 <= current_y < len(self.tiles)):
+                        # Convert back to world coordinates
+                        world_x = current_x * self.tile_size
+                        world_y = current_y * self.tile_size
+                        
+                        if self.is_walkable(world_x, world_y):
+                            print(f"Found valid spawn point at ({world_x}, {world_y})")
+                            return (world_x, world_y)
+            
+            layer += 1
+        
+        # If no valid point found, try a more aggressive approach - check every tile
+        print("Spiral search failed, checking all tiles")
+        for y_idx in range(len(self.tiles)):
+            for x_idx in range(len(self.tiles[0])):
+                if self.tiles[y_idx][x_idx] == 0:  # If it's a floor tile
+                    world_x = x_idx * self.tile_size
+                    world_y = y_idx * self.tile_size
+                    print(f"Found valid spawn point at ({world_x}, {world_y})")
+                    return (world_x, world_y)
+        
+        # If still no valid point found, return original coordinates (shouldn't happen)
+        print("WARNING: No valid spawn point found in entire dungeon!")
+        return (x, y)
         
     def is_valid_move(self, rect):
         """
@@ -128,29 +339,12 @@ class Dungeon:
                 
         return True
 
-    def update_explored(self, player_position):
-        """
-        Mark the tile the player is currently on as explored.
-        If the player enters a room, mark the entire room as explored.
-        """
-        grid_x = player_position[0] // self.tile_size
-        grid_y = player_position[1] // self.tile_size
 
-        if 0 <= grid_x < len(self.explored[0]) and 0 <= grid_y < len(self.explored):
-            self.explored[grid_y][grid_x] = True
-
-        # Check if the player is in a room and mark the entire room as explored
-        for room in self.rooms:
-            room_x, room_y, room_width, room_height = room
-            if room_x <= grid_x < room_x + room_width and room_y <= grid_y < room_y + room_height:
-                for y in range(room_y, room_y + room_height):
-                    for x in range(room_x, room_x + room_width):
-                        self.explored[y][x] = True
-                break
 
     def display_minimap(self, screen, minimap_size, player_position, position=(10, 10)):
         """
         Draws the minimap on the screen, including the player's position as a dot.
+        Only shows explored areas with fog of war for unexplored regions.
         :param screen: The Pygame screen to draw on.
         :param minimap_size: The size of the minimap in pixels.
         :param player_position: The player's position in the dungeon.
@@ -159,30 +353,34 @@ class Dungeon:
         minimap_tile_size = minimap_size // len(self.tiles)  # Scale the minimap to fit
         offset_x, offset_y = position  # Position of the minimap on the screen
 
+        # Draw all tiles with fog of war
         for y, row in enumerate(self.tiles):
             for x, tile in enumerate(row):
-                if self.explored[y][x]:
+                if self.is_tile_explored(x, y):
+                    # Show explored tiles
                     color = (200, 200, 200) if tile == 0 else (50, 50, 50)  # Gray for floors, dark gray for walls
                 else:
-                    color = (0, 0, 0)  # Black for unexplored tiles
+                    # Dark fog for unexplored areas
+                    color = (20, 20, 20)
                 pygame.draw.rect(
                     screen,
                     color,
                     pygame.Rect(offset_x + x * minimap_tile_size, offset_y + y * minimap_tile_size, minimap_tile_size, minimap_tile_size)
                 )
         
-        # Draw the ladder on the minimap if it's in an explored area
+        # Draw the ladder on the minimap only if it's in an explored area
         ladder_grid_x = self.ladder_position[0] // self.tile_size
         ladder_grid_y = self.ladder_position[1] // self.tile_size
-        if 0 <= ladder_grid_x < len(self.tiles[0]) and 0 <= ladder_grid_y < len(self.tiles):
-            if self.explored[ladder_grid_y][ladder_grid_x]:
-                ladder_minimap_x = offset_x + ladder_grid_x * minimap_tile_size
-                ladder_minimap_y = offset_y + ladder_grid_y * minimap_tile_size
-                pygame.draw.rect(
-                    screen,
-                    (255, 215, 0),  # Gold color for the ladder (same as in the main display)
-                    pygame.Rect(ladder_minimap_x, ladder_minimap_y, minimap_tile_size, minimap_tile_size)
-                )
+        if (0 <= ladder_grid_x < len(self.tiles[0]) and 
+            0 <= ladder_grid_y < len(self.tiles) and 
+            self.is_tile_explored(ladder_grid_x, ladder_grid_y)):
+            ladder_minimap_x = offset_x + ladder_grid_x * minimap_tile_size
+            ladder_minimap_y = offset_y + ladder_grid_y * minimap_tile_size
+            pygame.draw.rect(
+                screen,
+                (255, 215, 0),  # Gold color for the ladder (same as in the main display)
+                pygame.Rect(ladder_minimap_x, ladder_minimap_y, minimap_tile_size, minimap_tile_size)
+            )
 
         # Draw the player's position as a dot on the minimap
         player_minimap_x = offset_x + (player_position[0] / self.tile_size) * minimap_tile_size
@@ -547,29 +745,44 @@ class Dungeon:
 
     def display(self, screen, camera):
         # Draw the dungeon relative to the camera
-        for y, row in enumerate(self.tiles):
-            for x, tile in enumerate(row):
-                color = (0, 0, 0) if tile == 1 else (200, 200, 200)  # Black for walls, gray for floors
-                screen_x = x * self.tile_size - camera.offset_x
-                screen_y = y * self.tile_size - camera.offset_y
-                pygame.draw.rect(
-                    screen,
-                    color,
-                    pygame.Rect(screen_x, screen_y, self.tile_size, self.tile_size)
-                )
+        # Only process tiles that are potentially visible on screen to improve performance
+        start_x = max(0, int(camera.offset_x // self.tile_size))
+        end_x = min(len(self.tiles[0]), int((camera.offset_x + screen.get_width()) // self.tile_size) + 1)
+        start_y = max(0, int(camera.offset_y // self.tile_size))
+        end_y = min(len(self.tiles), int((camera.offset_y + screen.get_height()) // self.tile_size) + 1)
+        
+        # Draw only the visible portion of the dungeon
+        for y in range(start_y, end_y):
+            for x in range(start_x, end_x):
+                # Make sure we're within bounds
+                if y < len(self.tiles) and x < len(self.tiles[0]):
+                    tile = self.tiles[y][x]
+                    
+                    # Use high contrast colors for better visibility
+                    color = (50, 50, 50) if tile == 1 else (200, 200, 200)  # Dark gray for walls, light gray for floors
+                    
+                    # Draw the tile - always render regardless of exploration status
+                    screen_x = x * self.tile_size - camera.offset_x
+                    screen_y = y * self.tile_size - camera.offset_y
+                    pygame.draw.rect(
+                        screen,
+                        color,
+                        pygame.Rect(screen_x, screen_y, self.tile_size, self.tile_size)
+                    )
         
         # Draw enemy projectiles
         for projectile in self.enemy_projectiles:
             projectile.draw(screen, camera)
 
-        # Draw the ladder
+        # Draw the ladder only if it's on screen
         ladder_screen_x = self.ladder_position[0] - camera.offset_x
         ladder_screen_y = self.ladder_position[1] - camera.offset_y
-        pygame.draw.rect(
-            screen,
-            (255, 215, 0),  # Gold color for the ladder
-            pygame.Rect(ladder_screen_x, ladder_screen_y, self.tile_size, self.tile_size)
-        )
+        if -self.tile_size <= ladder_screen_x <= screen.get_width() and -self.tile_size <= ladder_screen_y <= screen.get_height():
+            pygame.draw.rect(
+                screen,
+                (255, 215, 0),  # Gold color for the ladder
+                pygame.Rect(ladder_screen_x, ladder_screen_y, self.tile_size, self.tile_size)
+            )
 
         # Draw wild Pokémon with animations
         for wild in self.wild_pokemon:

@@ -11,5 +11,8 @@ class Camera:
         self.offset_y = player_position[1] - self.height // 2
 
     def apply(self, position):
-        # Apply the camera offset to a position
-        return position[0] - self.offset_x, position[1] - self.offset_y
+        """Convert world coordinates to screen coordinates."""
+        # Ensure the position is properly offset and visible on screen
+        screen_x = position[0] - self.offset_x
+        screen_y = position[1] - self.offset_y
+        return (int(screen_x), int(screen_y))  # Convert to integers to prevent floating point rendering issues

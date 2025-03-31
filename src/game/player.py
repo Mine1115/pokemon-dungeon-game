@@ -253,6 +253,24 @@ class Player:
         """
         print(f"Interacting with {obj['name']}")
         if obj["name"] == "Dungeon Entrance":
+            # Check if we're already in the process of entering a dungeon
+            if hasattr(self, 'entering_dungeon') and self.entering_dungeon:
+                return  # Skip this interaction to prevent double triggering
+            
+            # Check if we have a last_interaction attribute and if it's the same object
+            # and if the interaction happened recently (within 1 second)
+            current_time = pygame.time.get_ticks()
+            if hasattr(self, 'last_interaction') and \
+               self.last_interaction.get('name') == obj['name'] and \
+               current_time - self.last_interaction.get('time', 0) < 1000:
+                return  # Skip this interaction to prevent double triggering
+            
+            # Store this interaction
+            self.last_interaction = {
+                'name': obj['name'],
+                'time': current_time
+            }
+            
             print("Entering the dungeon...")
             obj["action"]()  # Call the action associated with the object (e.g., transition to dungeon)
 

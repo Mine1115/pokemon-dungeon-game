@@ -71,13 +71,76 @@ class DungeonManager:
         dungeon.explored[player_id] = [[False for _ in range(width_tiles)] for _ in range(height_tiles)]
     
     def get_player_spawn(self, dungeon_id: str) -> Tuple[int, int]:
-        """Get the spawn position for a player in a dungeon"""
+        """Get the spawn position for a player in a dungeon
+        Enhanced to ensure players never spawn in walls.
+        """
         dungeon = self.dungeons[dungeon_id]
+        
+        # Validate that we have rooms
+        if not dungeon.rooms:
+            logging.error(f"No rooms found in dungeon {dungeon_id}")
+            # Create a default spawn at (0,0) and find a valid spot from there
+            return self._find_nearest_valid_spawn(dungeon_id, 0, 0)
+        
         first_room = dungeon.rooms[0]
-        spawn_x = (first_room.x + first_room.width // 2) * dungeon.tile_size
-        spawn_y = (first_room.y + first_room.height // 2) * dungeon.tile_size
-        return spawn_x, spawn_y
+        
+        # Calculate center of first room
+        center_x = (first_room.x + first_room.width // 2) * dungeon.tile_size
+        center_y = (first_room.y + first_room.height // 2) * dungeon.tile_size
+        
+        # If center is walkable, use it
+        if self.is_walkable(dungeon_id, center_x, center_y):
+            logging.info(f"Using room center as spawn point: ({center_x}, {center_y})")
+            return center_x, center_y
+            
+        # Otherwise, search nearby tiles for a walkable spot
+        for dy in range(-2, 3):
+            for dx in range(-2, 3):
+                test_x = center_x + (dx * dungeon.tile_size)
+                test_y = center_y + (dy * dungeon.tile_size)
+                if self.is_walkable(dungeon_id, test_x, test_y):
+                    logging.info(f"Using nearby tile as spawn point: ({test_x}, {test_y})")
+                    return test_x, test_y
+                    
+        # If no walkable spot found, search the entire first room systematically
+        logging.info(f"Searching entire first room for spawn point")
+        for ry in range(first_room.y, first_room.y + first_room.height):
+            for rx in range(first_room.x, first_room.x + first_room.width):
+                world_x = rx * dungeon.tile_size
+                world_y = ry * dungeon.tile_size
+                if self.is_walkable(dungeon_id, world_x, world_y):
+                    logging.info(f"Found valid spawn in room: ({world_x}, {world_y})")
+                    return world_x, world_y
+        
+        # If still no walkable spot found, try all rooms
+        logging.warning(f"First room has no valid spawn points, checking all rooms")
+        for room in dungeon.rooms[1:]:  # Skip first room as we already checked it
+            for ry in range(room.y, room.y + room.height):
+                for rx in range(room.x, room.x + room.width):
+                    world_x = rx * dungeon.tile_size
+                    world_y = ry * dungeon.tile_size
+                    if self.is_walkable(dungeon_id, world_x, world_y):
+                        logging.info(f"Found valid spawn in another room: ({world_x}, {world_y})")
+                        return world_x, world_y
+        
+        # If still no walkable spot found, use spiral search to find the nearest valid position
+        logging.warning(f"No valid spawn found in any room, using spiral search")
+        return self._find_nearest_valid_spawn(dungeon_id, center_x, center_y)
     
+    def is_walkable(self, dungeon_id: str, x: int, y: int) -> bool:
+        """Check if a position is walkable in the dungeon"""
+        dungeon = self.dungeons[dungeon_id]
+        # Convert to tile coordinates
+        tile_x = x // dungeon.tile_size
+        tile_y = y // dungeon.tile_size
+        
+        # Check bounds
+        if tile_x < 0 or tile_x >= len(dungeon.tiles[0]) or tile_y < 0 or tile_y >= len(dungeon.tiles):
+            return False
+            
+        # Check if tile is floor (0 is floor, 1 is wall)
+        return dungeon.tiles[tile_y][tile_x] == 0
+
     def update_explored(self, player_id: str, position: Tuple[float, float]) -> None:
         """Update explored tiles for a player"""
         if player_id not in self.player_dungeons:
@@ -344,6 +407,82 @@ class DungeonManager:
         if 0 <= grid_x < len(dungeon.tiles[0]) and 0 <= grid_y < len(dungeon.tiles):
             return dungeon.tiles[grid_y][grid_x] == 0
         return False
+        
+    def _find_nearest_valid_spawn(self, dungeon_id: str, x: float, y: float) -> Tuple[int, int]:
+        """Find the nearest valid (walkable) spawn point using a spiral search pattern.
+        Enhanced to ensure players never spawn in walls.
+        """
+        dungeon = self.dungeons[dungeon_id]
+        
+        # First try: check if the original position is already valid
+        if self.is_walkable(dungeon_id, x, y):
+            return (int(x), int(y))
+        
+        # Second try: check room centers first as they're most likely to be valid
+        for room in dungeon.rooms:
+            room_center_x = (room.x + room.width // 2) * dungeon.tile_size
+            room_center_y = (room.y + room.height // 2) * dungeon.tile_size
+            if self.is_walkable(dungeon_id, room_center_x, room_center_y):
+                return (room_center_x, room_center_y)
+        
+        # Third try: systematic search through all room tiles
+        for room in dungeon.rooms:
+            for ry in range(room.y, room.y + room.height):
+                for rx in range(room.x, room.x + room.width):
+                    world_x = rx * dungeon.tile_size
+                    world_y = ry * dungeon.tile_size
+                    if self.is_walkable(dungeon_id, world_x, world_y):
+                        return (world_x, world_y)
+        
+        # Last resort: spiral search from the original position
+        # Convert to tile coordinates
+        center_x = int(x // dungeon.tile_size)
+        center_y = int(y // dungeon.tile_size)
+        
+        # Spiral pattern: right, down, left, up
+        dx = [1, 0, -1, 0]
+        dy = [0, 1, 0, -1]
+        
+        # Start from the center and spiral outward
+        current_x = center_x
+        current_y = center_y
+        layer = 1
+        max_layers = 100  # Significantly increased search radius
+        
+        while layer < max_layers:
+            for direction in range(4):
+                steps = layer if direction % 2 == 0 else layer
+                
+                for _ in range(steps):
+                    current_x += dx[direction]
+                    current_y += dy[direction]
+                    
+                    # Check bounds
+                    if (0 <= current_x < len(dungeon.tiles[0]) and 
+                        0 <= current_y < len(dungeon.tiles)):
+                        # Convert back to world coordinates
+                        world_x = current_x * dungeon.tile_size
+                        world_y = current_y * dungeon.tile_size
+                        
+                        if self.is_walkable(dungeon_id, world_x, world_y):
+                            logging.info(f"Found valid spawn point at ({world_x}, {world_y}) after spiral search")
+                            return (world_x, world_y)
+            
+            layer += 1
+        
+        # If still no valid point found, search the entire dungeon grid as a last resort
+        logging.warning(f"Spiral search failed, performing full grid search for dungeon {dungeon_id}")
+        for y in range(len(dungeon.tiles)):
+            for x in range(len(dungeon.tiles[0])):
+                if dungeon.tiles[y][x] == 0:  # If it's a floor tile
+                    world_x = x * dungeon.tile_size
+                    world_y = y * dungeon.tile_size
+                    logging.info(f"Found valid spawn point at ({world_x}, {world_y}) after full grid search")
+                    return (world_x, world_y)
+        
+        # This should never happen if the dungeon has at least one floor tile
+        logging.error(f"CRITICAL: No valid spawn point found in dungeon {dungeon_id}")
+        return (int(x), int(y))
     
     def _spawn_wild_pokemon(self, rooms: List[Room], tile_size: int, floor: int) -> List[WildPokemon]:
         """Spawn wild Pokémon in random rooms"""

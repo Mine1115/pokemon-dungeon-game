@@ -160,13 +160,44 @@ def handle_enter_dungeon(data):
             player.in_dungeon = True
             dungeon_manager.assign_player_to_dungeon(player.id, dungeon_id)
             
-            # Get spawn position
+            # Get spawn position and ensure it's valid
             spawn_x, spawn_y = dungeon_manager.get_player_spawn(dungeon_id)
+            
+            # Double-check that the spawn point is actually walkable
+            if not dungeon_manager.is_walkable(dungeon_id, spawn_x, spawn_y):
+                logging.warning(f"Spawn point ({spawn_x}, {spawn_y}) is not walkable! Finding alternative...")
+                # Force a full search for a valid spawn point
+                spawn_x, spawn_y = dungeon_manager._find_nearest_valid_spawn(dungeon_id, spawn_x, spawn_y)
+                
+                # Final validation check
+                if not dungeon_manager.is_walkable(dungeon_id, spawn_x, spawn_y):
+                    logging.error(f"CRITICAL: Still could not find valid spawn point in dungeon {dungeon_id}")
+                    # Last resort: search the entire dungeon grid for any walkable tile
+                    dungeon = dungeon_manager.dungeons[dungeon_id]
+                    for y in range(len(dungeon.tiles)):
+                        for x in range(len(dungeon.tiles[0])):
+                            if dungeon.tiles[y][x] == 0:  # If it's a floor tile
+                                spawn_x = x * dungeon.tile_size
+                                spawn_y = y * dungeon.tile_size
+                                break
+                        if dungeon_manager.is_walkable(dungeon_id, spawn_x, spawn_y):
+                            break
+            
+            # Update player position to the validated spawn point
             player.x = spawn_x
             player.y = spawn_y
             
             # Send dungeon data to player
             dungeon_state = dungeon_manager.get_dungeon_state(dungeon_id, player.id)
+            # Add spawn point to dungeon state
+            dungeon_state['spawn_point'] = (spawn_x, spawn_y)
+            # Add room data for minimap functionality
+            dungeon_state['rooms'] = [{
+                'x': room.x,
+                'y': room.y,
+                'width': room.width,
+                'height': room.height
+            } for room in dungeon_manager.dungeons[dungeon_id].rooms]
             # Ensure enemy_projectiles is initialized
             if 'enemy_projectiles' not in dungeon_state:
                 dungeon_state['enemy_projectiles'] = []
@@ -177,7 +208,7 @@ def handle_enter_dungeon(data):
                 'state': dungeon_state
             }, room=request.sid)
             
-            logging.info(f'Player {player.name} entered dungeon {dungeon_id} at floor {floor}')
+            logging.info(f'Player {player.name} entered dungeon {dungeon_id} at floor {floor} at position ({spawn_x}, {spawn_y})')
         else:
             logging.warning(f'Player not found for session {request.sid}')
     except Exception as e:
@@ -227,13 +258,22 @@ def handle_next_floor():
             player.dungeon_id = new_dungeon_id
             dungeon_manager.assign_player_to_dungeon(player.id, new_dungeon_id)
             
-            # Get spawn position
+            # Get spawn position and ensure it's valid
             spawn_x, spawn_y = dungeon_manager.get_player_spawn(new_dungeon_id)
             player.x = spawn_x
             player.y = spawn_y
             
             # Send new dungeon data to player
             dungeon_state = dungeon_manager.get_dungeon_state(new_dungeon_id, player.id)
+            # Add spawn point to dungeon state
+            dungeon_state['spawn_point'] = (spawn_x, spawn_y)
+            # Add room data for minimap functionality
+            dungeon_state['rooms'] = [{
+                'x': room.x,
+                'y': room.y,
+                'width': room.width,
+                'height': room.height
+            } for room in dungeon_manager.dungeons[new_dungeon_id].rooms]
             emit('dungeon_state', {
                 'dungeon_id': new_dungeon_id,
                 'spawn_x': spawn_x,

@@ -36,6 +36,14 @@ class ServerDungeon:
     wild_pokemon: List[WildPokemon]
     explored: List[List[bool]]
     enemy_projectiles: List[dict] = field(default_factory=list)  # Store enemy projectiles data
+    spawn_point: tuple[int, int] = field(default=(0, 0))  # Store the validated spawn point
+    rooms: List[dict] = field(default_factory=list)  # Store room data for minimap
+    
+    def get_player_spawn(self):
+        """Return the spawn point for the player in this dungeon.
+        This method is required for compatibility with the Dungeon class.
+        """
+        return self.spawn_point
 
 class NetworkClient:
     def __init__(self):
@@ -112,6 +120,28 @@ class NetworkClient:
             
             # Create ServerDungeon object
             state = data['state']
+            
+            # Validate spawn point from server
+            spawn_point = (0, 0)
+            if 'spawn_point' in state:
+                spawn_point = tuple(state['spawn_point'])
+                print(f"Received spawn point from server: {spawn_point}")
+                
+                # Validate that the spawn point is on a walkable tile
+                spawn_x, spawn_y = spawn_point
+                grid_x = int(spawn_x // state['tile_size'])
+                grid_y = int(spawn_y // state['tile_size'])
+                
+                if (0 <= grid_x < len(state['tiles'][0]) and 
+                    0 <= grid_y < len(state['tiles']) and 
+                    state['tiles'][grid_y][grid_x] == 0):
+                    print(f"Spawn point is valid (on a floor tile)")
+                else:
+                    print(f"WARNING: Received invalid spawn point from server! Will need to find a valid position.")
+                    # We'll let the main game loop handle finding a valid position
+            else:
+                print(f"No spawn point received from server, will use default")
+            
             self.current_dungeon = ServerDungeon(
                 dungeon_id=data['dungeon_id'],
                 width=state['width'],
@@ -122,7 +152,9 @@ class NetworkClient:
                 ladder_position=state['ladder_position'],
                 wild_pokemon=[],
                 explored=state['explored'],
-                enemy_projectiles=[]
+                enemy_projectiles=[],
+                spawn_point=spawn_point,
+                rooms=state.get('rooms', [])
             )
             
             # Update wild Pokémon
@@ -194,6 +226,28 @@ class NetworkClient:
     def disconnect_from_server(self):
         if self.connected:
             self.sio.disconnect()
+    
+    def get_dungeon_tiles(self):
+        """Get the tiles of the current dungeon for minimap rendering."""
+        if self.current_dungeon:
+            return self.current_dungeon.tiles
+        return []
+    
+    def get_dungeon_explored(self):
+        """Get the explored tiles of the current dungeon for minimap rendering."""
+        if self.current_dungeon:
+            return self.current_dungeon.explored
+        return []
+    
+    def get_dungeon_ladder_position(self):
+        """Get the position of the ladder in the current dungeon."""
+        if self.current_dungeon:
+            return self.current_dungeon.ladder_position
+        return (0, 0)
+    
+    def get_wild_pokemon(self):
+        """Get the wild Pokémon in the current dungeon."""
+        return self.wild_pokemon
     
     def join_game(self, player_name: str, pokemon_name: str, x: float, y: float):
         if self.connected:

@@ -55,9 +55,10 @@ class Hub:
             screen: Pygame screen surface
             camera: Camera instance for position calculations
             other_player: NetworkPlayer instance containing position and info
+            player_id: ID of the local player to avoid rendering duplicate
         """
         # Skip rendering if this is the local player
-        if hasattr(other_player, 'id') and hasattr(other_player, 'network_client') and other_player.id == player_id:
+        if hasattr(other_player, 'id') and other_player.id == player_id:
             return
             
         # Calculate screen position

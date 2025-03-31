@@ -7,6 +7,8 @@ from game.camera import Camera
 from game.dungeon import Dungeon
 from game.title_screen import TitleScreen
 from game.move import Move
+from game.single_player_loop import SinglePlayerLoop
+from game.multiplayer_loop import MultiplayerLoop
 from utils.settings import SCREEN_WIDTH, SCREEN_HEIGHT
 
 async def main():
@@ -16,59 +18,12 @@ async def main():
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption("Pokemon Dungeon Game")
 
-    def generate_new_dungeon():
-        nonlocal dungeon, player
-        # For multiplayer, we'll use the server-generated dungeon
-        if hasattr(player, 'network_client') and player.network_client.connected:
-            if dungeon:
-                floor = dungeon.floor + 1  # Increment the floor count
-            else:
-                floor = 1  # Start at floor 1
-                
-            # Request a new dungeon from the server
-            player.network_client.enter_dungeon(floor)
-            
-            # The dungeon state will be received via socket events
-            # and the player position will be updated accordingly
-            return
-        
-        # For single player, generate locally
-        if dungeon:
-            floor = dungeon.floor + 1  # Increment the floor count
-        else:
-            floor = 1  # Start at floor 1
-        dungeon = Dungeon(2000, 2000, 50, floor=floor)  # Generate a new dungeon floor
-        player.position = list(dungeon.get_player_spawn())  # Spawn the player in the first room
-
-    def transition_to_dungeon():
-        nonlocal in_dungeon, screen, dungeon
-        in_dungeon = True
-        
-        # For multiplayer, use server-side dungeon
-        if hasattr(player, 'network_client') and player.network_client.connected:
-            # Initialize a placeholder dungeon for multiplayer
-            dungeon = Dungeon(2000, 2000, 50, floor=1)
-            player.network_client.enter_dungeon(1)  # Start with floor 1
-            # The dungeon state will be received via socket events
-        else:
-            # For single player, generate locally
-            generate_new_dungeon()
-        
-        # Draw the initial state of the dungeon including XP bar
-        screen.fill((0, 0, 0))  # Black background
-        dungeon.display(screen, camera)  # Always display dungeon, whether multiplayer or single player
-        player.draw(screen, camera)
-        player.draw_hp_bar(screen)
-        player.draw_xp_bar(screen)  # Ensure XP bar is drawn when first entering
-        pygame.display.flip()  # Update the display immediately
-
     def start_game_with_pokemon(pokemon_name, selected_moves, multiplayer_enabled, username):
-        nonlocal player, hub, camera, in_title_screen
+        nonlocal player, in_title_screen, game_loop
         
-        # Create player with selected Pokémon and set network client player ID
+        # Create player with selected Pokémon
         player = Player(name=username, health=100, position=(500, 500), pokemon_name=pokemon_name)
-        # No need to override pokemon as it's now properly initialized with pokemon_name
-         
+        
         # Clear default moves and add selected moves
         player.moves = []
         player.pokemon.current_moves = []
@@ -82,19 +37,23 @@ async def main():
         from game.player import set_player_instance
         set_player_instance(player)
         
-        # Initialize network client for multiplayer
+        # Initialize the appropriate game loop based on multiplayer setting
         if multiplayer_enabled:
+            # Initialize network client for multiplayer
             from game.network_client import NetworkClient
             network_client = NetworkClient()
             if network_client.connect_to_server():
                 network_client.join_game(username, pokemon_name, player.position[0], player.position[1])
                 player.network_client = network_client
+                # Create multiplayer game loop
+                game_loop = MultiplayerLoop(screen, player)
             else:
                 print("Failed to connect to multiplayer server")
-        
-        # Initialize hub and camera
-        hub = Hub(transition_to_dungeon)
-        camera = Camera(SCREEN_WIDTH, SCREEN_HEIGHT)
+                # Fall back to single player if connection fails
+                game_loop = SinglePlayerLoop(screen, player)
+        else:
+            # Create single player game loop
+            game_loop = SinglePlayerLoop(screen, player)
         
         # Exit title screen
         in_title_screen = False
@@ -105,9 +64,25 @@ async def main():
     
     # These will be initialized when the player selects a Pokémon
     player = None
-    hub = None
-    camera = None
+    camera = Camera(SCREEN_WIDTH, SCREEN_HEIGHT)  # Initialize camera
     dungeon = None
+    game_loop = None  # Initialize game_loop variable
+    
+    # Define the function to generate a new dungeon
+    def generate_new_dungeon():
+        nonlocal dungeon, player
+        if dungeon:
+            floor = dungeon.floor + 1  # Increment the floor count
+        else:
+            floor = 1  # Start at floor 1
+            
+        dungeon = Dungeon(2000, 2000, 50, floor=floor)  # Generate a new dungeon floor
+        spawn_point = dungeon.get_player_spawn()
+        if spawn_point and player:
+            player.position = list(spawn_point)  # Spawn the player in the first room
+    
+    # Initialize hub with the transition function
+    hub = Hub(lambda: setattr(locals(), 'in_dungeon', True) or generate_new_dungeon())
 
     clock = pygame.time.Clock()
     running = True
@@ -151,7 +126,8 @@ async def main():
                 
                 # Request periodic updates from the server less frequently to reduce network load
                 if pygame.time.get_ticks() % 60 == 0:  # Update every 60 frames
-                    await player.network_client.update_dungeon()
+                    # Don't use await since update_dungeon is not an async function
+                    player.network_client.update_dungeon()
                 
                 # Initialize or update dungeon with server data more efficiently
                 if dungeon is None or player.network_client.current_dungeon:
@@ -163,7 +139,21 @@ async def main():
                             dungeon = Dungeon(server_dungeon.width, server_dungeon.height, server_dungeon.tile_size, floor=server_dungeon.floor)
                             # Set initial player position if needed
                             if not player.position or player.position == [0, 0]:
-                                player.position = list(dungeon.get_player_spawn())
+                                if hasattr(server_dungeon, 'spawn_point'):
+                                    # Validate that the spawn point is on a walkable tile
+                                    spawn_x, spawn_y = server_dungeon.spawn_point
+                                    if dungeon.is_walkable(spawn_x, spawn_y):
+                                        player.position = list(server_dungeon.spawn_point)
+                                    else:
+                                        # Find a valid spawn point if the server-provided one is invalid
+                                        valid_spawn = dungeon.find_nearest_valid_spawn(spawn_x, spawn_y)
+                                        player.position = list(valid_spawn)
+                                        print(f"Found valid spawn point at {valid_spawn}")
+                                else:
+                                    # Use local spawn point finding logic
+                                    spawn_point = dungeon.get_player_spawn()
+                                    if spawn_point:
+                                        player.position = list(spawn_point)
                         # Update only changed dungeon state
                         if hasattr(server_dungeon, 'tiles') and server_dungeon.tiles != dungeon.tiles:
                             dungeon.tiles = server_dungeon.tiles
@@ -191,6 +181,11 @@ async def main():
                 
                 if player_rect.colliderect(ladder_rect):
                     print("Descending to the next floor...")
+                    # Ensure we have a valid spawn point before transitioning
+                    if player.network_client.current_dungeon:
+                        spawn_point = player.network_client.current_dungeon.get_player_spawn()
+                        if spawn_point:
+                            player.position = list(spawn_point)
                     player.network_client.next_floor()
             else:
                 # Single player: Use local dungeon logic
@@ -199,13 +194,30 @@ async def main():
 
                 # Update wild Pokémon behavior
                 dungeon.update_wild_pokemon(player)
+                
+                # Update wild Pokémon from server in multiplayer mode
+                if hasattr(player, 'network_client') and player.network_client.connected:
+                    server_wild_pokemon = player.network_client.get_wild_pokemon()
+                    if server_wild_pokemon and dungeon:
+                        dungeon.wild_pokemon = server_wild_pokemon
 
                 # Check for interaction with the ladder
                 player_rect = pygame.Rect(player.position, player.size)
                 ladder_rect = pygame.Rect(dungeon.ladder_position, (dungeon.tile_size, dungeon.tile_size))
                 if player_rect.colliderect(ladder_rect):
                     print("Descending to the next floor...")
+                    # Store current position to prevent spawning in walls
+                    old_position = list(player.position)
                     generate_new_dungeon()
+                    # Validate spawn position
+                    if not dungeon.is_walkable(player.position[0], player.position[1]):
+                        # Try to find a valid spawn point
+                        spawn_point = dungeon.get_player_spawn()
+                        if spawn_point:
+                            player.position = list(spawn_point)
+                        else:
+                            # If no valid spawn point found, reset to previous position
+                            player.position = old_position
 
             # Update player projectiles
             if not hasattr(player, 'projectiles'):
@@ -222,138 +234,105 @@ async def main():
             # Display the dungeon
             screen.fill((0, 0, 0))  # Black background
             
-            # Handle multiplayer vs. single player dungeon display
-            if hasattr(player, 'network_client') and player.network_client.connected and player.network_client.in_dungeon:
-                # Multiplayer: Display server-side dungeon
-                if player.network_client.current_dungeon:
-                    # Draw tiles based on server data
-                    tiles = player.network_client.get_dungeon_tiles()
-                    explored = player.network_client.get_dungeon_explored()
-                    tile_size = player.network_client.current_dungeon.tile_size
-                    
-                    # Draw tiles
-                    for y, row in enumerate(tiles):
-                        for x, tile in enumerate(row):
-                            # Only draw if explored
-                            if y < len(explored) and x < len(explored[0]) and explored[y][x]:
-                                # Calculate screen position
-                                screen_x = x * tile_size - camera.offset_x
-                                screen_y = y * tile_size - camera.offset_y
-                                
-                                # Only draw if on screen
-                                if -tile_size <= screen_x <= SCREEN_WIDTH and -tile_size <= screen_y <= SCREEN_HEIGHT:
-                                    color = (200, 200, 200) if tile == 0 else (50, 50, 50)  # Gray for floors, dark gray for walls
-                                    pygame.draw.rect(screen, color, pygame.Rect(screen_x, screen_y, tile_size, tile_size))
-                    
-                    # Draw ladder
-                    ladder_pos = player.network_client.get_dungeon_ladder_position()
-                    ladder_screen_x = ladder_pos[0] - camera.offset_x
-                    ladder_screen_y = ladder_pos[1] - camera.offset_y
-                    if -tile_size <= ladder_screen_x <= SCREEN_WIDTH and -tile_size <= ladder_screen_y <= SCREEN_HEIGHT:
-                        pygame.draw.rect(screen, (255, 215, 0), pygame.Rect(ladder_screen_x, ladder_screen_y, tile_size, tile_size))
-                    
-                    # Draw wild Pokémon
-                    for pokemon in player.network_client.get_wild_pokemon():
-                        pokemon_screen_x = pokemon.position[0] - camera.offset_x
-                        pokemon_screen_y = pokemon.position[1] - camera.offset_y
-                        if -tile_size <= pokemon_screen_x <= SCREEN_WIDTH and -tile_size <= pokemon_screen_y <= SCREEN_HEIGHT:
-                            # Draw a simple representation of the Pokémon
-                            pygame.draw.rect(screen, (255, 0, 0), pygame.Rect(pokemon_screen_x, pokemon_screen_y, tile_size, tile_size))
-                            
-                            # Draw HP bar above the Pokémon
-                            hp_width = 40
-                            hp_height = 5
-                            hp_x = pokemon_screen_x + (tile_size - hp_width) // 2
-                            hp_y = pokemon_screen_y - 10
-                            
-                            # Background (empty) bar
-                            pygame.draw.rect(screen, (255, 255, 255), pygame.Rect(hp_x, hp_y, hp_width, hp_height))
-                            
-                            # Filled portion based on HP percentage
-                            hp_percentage = pokemon.current_hp / pokemon.max_hp
-                            filled_width = int(hp_width * hp_percentage)
-                            hp_color = (0, 255, 0) if hp_percentage > 0.5 else (255, 255, 0) if hp_percentage > 0.25 else (255, 0, 0)
-                            pygame.draw.rect(screen, hp_color, pygame.Rect(hp_x, hp_y, filled_width, hp_height))
+            # Handle dungeon display
+            if dungeon:
+                # In multiplayer mode, only use server dungeon data
+                if hasattr(player, 'network_client') and player.network_client.connected:
+                    if player.network_client.current_dungeon:
+                        dungeon.display(screen, camera)
+                else:
+                    # Single player mode
+                    dungeon.display(screen, camera)
             else:
-                # Single player: Display local dungeon
-                dungeon.display(screen, camera)
-            
-            # Handle input and collision detection for both multiplayer and single player
-            player.handle_input(keys, dungeon=dungeon)  # Always pass dungeon for collision detection
+                # If dungeon isn't initialized yet, draw a loading message
+                font = pygame.font.SysFont(None, 36)
+                loading_text = font.render("Loading dungeon...", True, (255, 255, 255))
+                text_rect = loading_text.get_rect(center=(SCREEN_WIDTH/2, SCREEN_HEIGHT/2))
+                screen.blit(loading_text, text_rect)
                 
+            # Handle input and collision detection
+            player.handle_input(keys, dungeon=dungeon)  # Pass dungeon for collision detection
             camera.update(player.position)  # Update the camera to follow the player
             # Animation update is now handled in the player.draw method
             player.draw(screen, camera)
-
+                
             # Draw projectiles
             for projectile in player.projectiles:
                 projectile.draw(screen, camera)
 
             # Display the player's HP bar
             player.draw_hp_bar(screen)
-    
+
             # Display the player's XP bar
             player.draw_xp_bar(screen)
-    
+            
             # Display the minimap in the top-right corner
             minimap_position = (screen.get_width() - 210, 10)  # Top-right corner with padding
-            
-            # Handle multiplayer vs. single player minimap display
-            if hasattr(player, 'network_client') and player.network_client.connected and player.network_client.in_dungeon:
-                # Multiplayer: Display server-side dungeon minimap
-                if player.network_client.current_dungeon:
-                    # Get dungeon data
-                    tiles = player.network_client.get_dungeon_tiles()
-                    explored = player.network_client.get_dungeon_explored()
                     
-                    # Calculate minimap tile size
-                    minimap_size = 200
-                    minimap_tile_size = minimap_size // len(tiles) if tiles else 1
-                    offset_x, offset_y = minimap_position
-                    
-                    # Draw minimap tiles
-                    for y, row in enumerate(tiles):
-                        for x, tile in enumerate(row):
-                            if y < len(explored) and x < len(explored[0]):
-                                if explored[y][x]:
-                                    color = (200, 200, 200) if tile == 0 else (50, 50, 50)  # Gray for floors, dark gray for walls
-                                else:
-                                    color = (0, 0, 0)  # Black for unexplored tiles
-                                    
+                    # Handle multiplayer vs. single player minimap display
+            try:
+                if hasattr(player, 'network_client') and player.network_client.connected and player.network_client.in_dungeon:
+                    # Multiplayer: Display server-side dungeon minimap
+                    if player.network_client.current_dungeon:
+                        # Get dungeon data
+                        tiles = player.network_client.get_dungeon_tiles()
+                        explored = player.network_client.get_dungeon_explored()
+                        
+                        # Calculate minimap tile size
+                        minimap_size = 200
+                        minimap_tile_size = minimap_size // len(tiles) if tiles else 1
+                        offset_x, offset_y = minimap_position
+                        
+                        # Draw minimap tiles
+                        for y, row in enumerate(tiles):
+                            for x, tile in enumerate(row):
+                                if y < len(explored) and x < len(explored[0]):
+                                    if explored[y][x]:
+                                        color = (200, 200, 200) if tile == 0 else (50, 50, 50)  # Gray for floors, dark gray for walls
+                                    else:
+                                        color = (0, 0, 0)  # Black for unexplored tiles
+                                        
+                                    pygame.draw.rect(
+                                        screen,
+                                        color,
+                                        pygame.Rect(offset_x + x * minimap_tile_size, offset_y + y * minimap_tile_size, minimap_tile_size, minimap_tile_size)
+                                    )
+                        
+                        # Draw the ladder on the minimap if it's in an explored area
+                        ladder_pos = player.network_client.get_dungeon_ladder_position()
+                        ladder_grid_x = ladder_pos[0] // 50  # Assuming tile_size is 50
+                        ladder_grid_y = ladder_pos[1] // 50
+                        
+                        if 0 <= ladder_grid_x < len(tiles[0]) and 0 <= ladder_grid_y < len(tiles):
+                            if ladder_grid_y < len(explored) and ladder_grid_x < len(explored[0]) and explored[ladder_grid_y][ladder_grid_x]:
+                                ladder_minimap_x = offset_x + ladder_grid_x * minimap_tile_size
+                                ladder_minimap_y = offset_y + ladder_grid_y * minimap_tile_size
                                 pygame.draw.rect(
                                     screen,
-                                    color,
-                                    pygame.Rect(offset_x + x * minimap_tile_size, offset_y + y * minimap_tile_size, minimap_tile_size, minimap_tile_size)
+                                    (255, 215, 0),  # Gold color for the ladder
+                                    pygame.Rect(ladder_minimap_x, ladder_minimap_y, minimap_tile_size, minimap_tile_size)
                                 )
-                    
-                    # Draw the ladder on the minimap if it's in an explored area
-                    ladder_pos = player.network_client.get_dungeon_ladder_position()
-                    ladder_grid_x = ladder_pos[0] // 50  # Assuming tile_size is 50
-                    ladder_grid_y = ladder_pos[1] // 50
-                    
-                    if 0 <= ladder_grid_x < len(tiles[0]) and 0 <= ladder_grid_y < len(tiles):
-                        if ladder_grid_y < len(explored) and ladder_grid_x < len(explored[0]) and explored[ladder_grid_y][ladder_grid_x]:
-                            ladder_minimap_x = offset_x + ladder_grid_x * minimap_tile_size
-                            ladder_minimap_y = offset_y + ladder_grid_y * minimap_tile_size
-                            pygame.draw.rect(
-                                screen,
-                                (255, 215, 0),  # Gold color for the ladder
-                                pygame.Rect(ladder_minimap_x, ladder_minimap_y, minimap_tile_size, minimap_tile_size)
-                            )
-                    
-                    # Draw the player's position as a dot on the minimap
-                    player_minimap_x = offset_x + (player.position[0] / 50) * minimap_tile_size  # Assuming tile_size is 50
-                    player_minimap_y = offset_y + (player.position[1] / 50) * minimap_tile_size
-                    pygame.draw.circle(
-                        screen,
-                        (255, 0, 0),  # Red color for the player dot
-                        (int(player_minimap_x), int(player_minimap_y)),
-                        max(2, minimap_tile_size // 4)  # Radius of the dot
-                    )
-            else:
-                # Single player: Display local dungeon minimap
-                dungeon.display_minimap(screen, minimap_size=200, player_position=player.position, position=minimap_position)
-
+                        
+                        # Draw the player's position as a dot on the minimap
+                        player_minimap_x = offset_x + (player.position[0] / 50) * minimap_tile_size  # Assuming tile_size is 50
+                        player_minimap_y = offset_y + (player.position[1] / 50) * minimap_tile_size
+                        pygame.draw.circle(
+                            screen,
+                            (255, 0, 0),  # Red color for the player dot
+                            (int(player_minimap_x), int(player_minimap_y)),
+                            max(2, minimap_tile_size // 4)  # Radius of the dot
+                        )
+                else:
+                    # Single player: Display local dungeon minimap
+                    dungeon.display_minimap(screen, minimap_size=200, player_position=player.position, position=minimap_position)
+            except Exception as e:
+                # If anything fails during rendering, show an error message instead of a black screen
+                print(f"Error rendering dungeon: {e}")
+                font = pygame.font.SysFont(None, 36)
+                error_text = font.render("Error rendering dungeon", True, (255, 0, 0))
+                text_rect = error_text.get_rect(center=(SCREEN_WIDTH/2, SCREEN_HEIGHT/2))
+                screen.blit(error_text, text_rect)
+                
             # Display the player's moves
             player.draw_moves(screen)
 
@@ -374,4 +353,30 @@ async def main():
             player.handle_input(keys, hub=hub)  # Pass the hub object
             camera.update(player.position)
             screen.fill((0, 199, 0))  # Green background
-            hub.
+            hub.display(screen, camera)  # Display the hub
+            
+            # Update player position on the server if in multiplayer mode
+            if hasattr(player, 'network_client') and player.network_client.connected:
+                # Send position update to server
+                player.network_client.update_position(player.position[0], player.position[1], 
+                                                     player.last_direction[0], player.last_direction[1])
+                
+                # Display other players in the hub
+                other_players = player.network_client.get_other_players()
+                for other_player in other_players:
+                    # Only display players who are not in a dungeon and not the local player
+                    if not other_player.in_dungeon and other_player.id != player.network_client.player_id:
+                        hub.draw_other_player(screen, camera, other_player, player.network_client.player_id)
+            
+            player.draw(screen, camera)  # Draw the player
+            
+            # Check for interactions with hub objects
+            player.check_interactions(hub)
+            
+        # Update the display
+        pygame.display.flip()
+        clock.tick(60)  # Maintain 60 FPS
+
+# Run the main function using asyncio
+if __name__ == "__main__":
+    asyncio.run(main())
